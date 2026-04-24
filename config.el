@@ -93,7 +93,9 @@
 
 ;; Font handling - GUI looks best with specific weights
 ;; If these aren't installed, it will fallback to system mono
-(setq doom-font (font-spec :family "Ubuntu Mono" :size 40 :weight 'light)
+(setq doom-font (font-spec :family "Ubuntu Mono"
+                           :size (if (> (display-pixel-height) 1440) 40 20)
+                           :weight 'light)
       doom-variable-pitch-font (font-spec :family "Ubuntu" :size 14))
 
 ;; Use a theme that looks great in GUI (similar to VS Code/PyCharm)
@@ -249,3 +251,4 @@
 
 (after! vterm
   (define-key vterm-mode-map (kbd "<f2>") #'consult-recent-file))
+

@@ -103,11 +103,8 @@
 ;; 2. THE "CONTROL-Z" REPLACEMENT (TERMINAL)
 ;; ==========================================
 
-;; Map C-z to toggle a terminal at the bottom instead of minimizing.
-;; This keeps you in the "flow" without leaving the app.
-(map! :n "C-z" #'+vterm/toggle)
-(map! :i "C-z" #'+vterm/toggle)
-(map! :v "C-z" #'+vterm/toggle)
+;; Map F4 to toggle a terminal at the bottom instead of minimizing.
+;; (binding defined later via daoud/toggle-general-vterm)
 
 ;; Ensure vterm (the terminal) looks like your Ubuntu terminal
 (setq vterm-shell "/bin/bash")
@@ -194,8 +191,22 @@
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-x C-z"))
 
-;; 2. Map C-z to toggle a terminal (works in all modes)
-(map! :gniv "C-z" #'+vterm/toggle)
+(defun daoud/toggle-general-vterm ()
+  "Toggle a dedicated general-purpose vterm, always separate from the Claude vterm."
+  (interactive)
+  (let* ((buf-name "*doom:vterm-general*")
+         (buf (get-buffer buf-name))
+         (win (and buf (get-buffer-window buf 'visible))))
+    (cond
+     ((and win (window-live-p win))
+      (delete-window win))
+     (buf
+      (pop-to-buffer buf))
+     (t
+      (vterm buf-name)))))
+
+;; 2. Map F4 to toggle the general terminal (works in all modes)
+(map! :gniv "<f4>" #'daoud/toggle-general-vterm)
 
 ;; Force vterm popups to the right
 (set-popup-rule! "^\\*doom:vterm" :side 'right :size 0.4 :select t :quit nil)
@@ -226,14 +237,15 @@
           (vterm-send-return)))))))
 
 ;; Bind it to F5
-(map! " <f5>" #'daoud/toggle-claude-vterm)
+(map! "<f5>" #'daoud/toggle-claude-vterm)
 
 ;; Shortcut for recent files
 (map! "<f2>" #'consult-recent-file)
 
 (after! vterm
-  ;; This tells vterm: "When I hit F5, don't send it to the shell; run my function."
-  (define-key vterm-mode-map (kbd "<f5>") #'daoud/toggle-claude-vterm))
+  ;; This tells vterm: "When I hit F5/C-z, don't send it to the shell; run my function."
+  (define-key vterm-mode-map (kbd "<f5>") #'daoud/toggle-claude-vterm)
+  (define-key vterm-mode-map (kbd "<f4>") #'daoud/toggle-general-vterm))
 
 (after! vterm
   (define-key vterm-mode-map (kbd "<f2>") #'consult-recent-file))

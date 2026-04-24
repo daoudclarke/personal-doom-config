@@ -211,7 +211,7 @@
 (map! :gniv "<f4>" #'daoud/toggle-general-vterm)
 
 ;; Force vterm popups to the right
-(set-popup-rule! "^\\*doom:vterm" :side 'right :size 0.4 :select t :quit nil)
+(set-popup-rule! "^\\*doom:vterm" :side 'right :size 0.5 :select t :quit nil)
 
 (defun daoud/toggle-claude-vterm ()
   "Toggle a dedicated Claude vterm.

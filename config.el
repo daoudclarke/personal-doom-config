@@ -109,7 +109,7 @@
 ;; (binding defined later via daoud/toggle-general-vterm)
 
 ;; Ensure vterm (the terminal) looks like your Ubuntu terminal
-(setq vterm-shell "/bin/bash")
+(setq vterm-shell "/bin/zsh")
 
 ;; ==========================================
 ;; 3. PYTHON IDE FEATURES (LSP)
@@ -194,9 +194,12 @@
 (global-unset-key (kbd "C-x C-z"))
 
 (defun daoud/toggle-general-vterm ()
-  "Toggle a dedicated general-purpose vterm, always separate from the Claude vterm."
+  "Toggle a dedicated general-purpose vterm for the current project."
   (interactive)
-  (let* ((buf-name "*doom:vterm-general*")
+  (let* ((project (if (and (fboundp 'projectile-project-p) (projectile-project-p))
+                      (projectile-project-name)
+                    "global"))
+         (buf-name (format "*doom:vterm-general-%s*" project))
          (buf (get-buffer buf-name))
          (win (and buf (get-buffer-window buf 'visible))))
     (cond
@@ -214,29 +217,23 @@
 (set-popup-rule! "^\\*doom:vterm" :side 'right :size 0.5 :select t :quit nil)
 
 (defun daoud/toggle-claude-vterm ()
-  "Toggle a dedicated Claude vterm.
-   Creates it if missing, hides it if visible, shows it if hidden."
+  "Toggle a dedicated Claude vterm for the current project."
   (interactive)
-  (let* ((buffer-name "*doom:vterm-claude*")
+  (let* ((project (if (and (fboundp 'projectile-project-p) (projectile-project-p))
+                      (projectile-project-name)
+                    "global"))
+         (buffer-name (format "*doom:vterm-claude-%s*" project))
          (buffer (get-buffer buffer-name))
          (window (and buffer (get-buffer-window buffer 'visible))))
     (cond
-     ;; Case 1: Window is visible -> Close the popup
      ((and window (window-live-p window))
       (delete-window window))
-
-     ;; Case 2: Buffer exists but window is hidden -> Show it
      (buffer
       (pop-to-buffer buffer))
-
-     ;; Case 3: No buffer exists -> Create, rename, and launch
      (t
-      (+vterm/toggle nil)
-      (let ((vterm-buffer (current-buffer)))
-        (with-current-buffer vterm-buffer
-          (rename-buffer buffer-name)
-          (vterm-send-string "claude")
-          (vterm-send-return)))))))
+      (vterm buffer-name)
+      (vterm-send-string "claude")
+      (vterm-send-return)))))
 
 ;; Bind it to F5
 (map! "<f5>" #'daoud/toggle-claude-vterm)
